@@ -2,7 +2,7 @@
 // o estado é sempre reconstruído do zero, copiando só o que é conhecido e válido.
 
 export const SAVE_KEY = 'modo-multiplayer:save';
-export const SAVE_VERSION = 1;
+export const SAVE_VERSION = 2;
 const MAX_RAW_LENGTH = 20_000;
 const NICK_MAX = 16;
 
@@ -15,6 +15,7 @@ export function emptyState() {
     opened: new Set(),
     completed: new Set(),
     missions: new Map(),
+    read: new Map(),
     achievements: new Set(),
     nickname: '',
     freePlay: false,
@@ -57,6 +58,7 @@ export function load(catalog) {
 export function validate(data, catalog) {
   const state = emptyState();
   if (!data || typeof data !== 'object' || Array.isArray(data)) return state;
+  if (data.v === 1) data = migrarV1(data);
   if (data.v !== SAVE_VERSION) return state;
 
   const ids = catalog.ids;
@@ -67,16 +69,8 @@ export function validate(data, catalog) {
   state.opened = new Set(pickIds(data.opened));
   state.completed = new Set(pickIds(data.completed));
 
-  if (data.missions && typeof data.missions === 'object' && !Array.isArray(data.missions)) {
-    for (const id of ids) {
-      if (!Object.prototype.hasOwnProperty.call(data.missions, id)) continue;
-      const list = data.missions[id];
-      const max = catalog.missionCount.get(id) ?? 0;
-      if (!Array.isArray(list)) continue;
-      const valid = list.filter((n) => Number.isInteger(n) && n >= 0 && n < max);
-      if (valid.length) state.missions.set(id, new Set(valid));
-    }
-  }
+  state.missions = pickIndexMap(data.missions, ids, catalog.missionCount);
+  state.read = pickIndexMap(data.read, ids, catalog.telaCount);
 
   if (Array.isArray(data.achievements)) {
     state.achievements = new Set(
@@ -91,16 +85,59 @@ export function validate(data, catalog) {
   return state;
 }
 
-export function serialize(state) {
+/**
+ * Save da versão 1: a fase de comunidades era a "05" e virou "06"
+ * quando entrou a fase de IA. Renomeia sem perder o progresso.
+ */
+function migrarV1(old) {
+  const ren = (x) => (x === '05' ? '06' : x);
+  const arr = (a) => (Array.isArray(a) ? a.map(ren) : []);
   const missions = Object.create(null);
-  for (const [id, set] of state.missions) {
-    if (set.size) missions[id] = [...set].sort((a, b) => a - b);
+  if (old.missions && typeof old.missions === 'object' && !Array.isArray(old.missions)) {
+    for (const k of Object.keys(old.missions)) missions[ren(k)] = old.missions[k];
   }
+  return {
+    ...old,
+    v: 2,
+    opened: arr(old.opened),
+    completed: arr(old.completed),
+    missions,
+    last: typeof old.last === 'string' ? ren(old.last) : null,
+  };
+}
+
+/** Lê um mapa { idDaFase: [números] } só com fases e números que existem. */
+function pickIndexMap(raw, ids, counts) {
+  const out = new Map();
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return out;
+  for (const id of ids) {
+    if (!Object.prototype.hasOwnProperty.call(raw, id)) continue;
+    const list = raw[id];
+    const max = counts.get(id) ?? 0;
+    if (!Array.isArray(list)) continue;
+    const valid = list.filter((n) => Number.isInteger(n) && n >= 0 && n < max);
+    if (valid.length) out.set(id, new Set(valid));
+  }
+  return out;
+}
+
+function mapToObject(map) {
+  const obj = Object.create(null);
+  for (const [id, set] of map) {
+    if (set.size) obj[id] = [...set].sort((a, b) => a - b);
+  }
+  return obj;
+}
+
+export function serialize(state) {
+  const missions = mapToObject(state.missions);
+  const read = mapToObject(state.read);
   return {
     v: SAVE_VERSION,
     opened: [...state.opened],
     completed: [...state.completed],
     missions,
+    read,
     achievements: [...state.achievements],
     nickname: state.nickname,
     freePlay: state.freePlay,

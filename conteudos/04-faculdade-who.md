@@ -249,9 +249,9 @@ Cada missão concluída = XP na tua escolha. 🎮
 
 Escolher um curso é importante, mas não é uma sentença. O que vai fazer diferença de verdade é **o que tu faz com essa escolha**: os projetos, as pessoas que tu conhece, as portas que tu abre.
 
-E sabe qual é o melhor jeito de conhecer as áreas da tecnologia na prática, sem pagar nada? **Comunidades.** Lá tu encontra gente de front, de dados, de produto, de segurança, todo mundo disposto a contar como é o dia a dia e a te ajudar a escolher tua classe.
+E tem uma ferramenta que pode virar tua parceira de estudo em qualquer curso que tu escolher (se tu souber usar direitinho): a **inteligência artificial**.
 
-👉 [Próxima fase: Comunidades tech, o que são, onde vivem, do que se alimentam?](./05-comunidades-tech.md)
+👉 [Próxima fase: IA, who? Teu novo parceiro de party](./05-ia-who.md)
 
 ---
 

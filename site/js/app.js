@@ -2,7 +2,7 @@
 
 import { CONTENT } from './content.js';
 import { h } from './dom.js';
-import { renderBlocks } from './render.js';
+import { renderBlocks, inline } from './render.js';
 import * as save from './save.js';
 import * as game from './game.js';
 
@@ -98,7 +98,7 @@ function playerName() {
 function renderHud() {
   const xp = game.computeXP(state);
   const lv = game.levelFor(xp);
-  const zeradas = game.FASES.filter((f) => game.isPhaseComplete(state, f)).length;
+  const zeradas = game.FASES_PRINCIPAIS.filter((f) => game.isPhaseComplete(state, f)).length;
   const hash = location.hash || '#/';
   const ativo = (rota) => (hash === rota || (rota === '#/mapa' && hash.startsWith('#/fase/')) ? 'page' : null);
   const dicaXp = lv.proximo
@@ -133,7 +133,7 @@ function renderHud() {
           h('span', { class: 'stat__xp' },
             barra(lv.progress, lv.proximo ? `Progresso até o nível ${lv.nivel + 1}` : 'Nível máximo'),
             h('span', { class: 'stat__dica' }, dicaXp)), 'stat--xp'),
-        stat('Fases zeradas', `${zeradas} de ${game.FASES.length}`))),
+        stat('Fases zeradas', `${zeradas} de ${game.FASES_PRINCIPAIS.length}`))),
   );
 }
 
@@ -168,36 +168,46 @@ function statusCartucho(id) {
   return { cls: 'nova', txt: 'NOVA', btn: 'JOGAR' };
 }
 
+function nomeFase(fase) {
+  return fase.bonus ? 'FASE BÔNUS' : `FASE ${String(fase.numero).padStart(2, '0')}`;
+}
+
 function telaMapa() {
-  const zeradas = game.FASES.filter((f) => game.isPhaseComplete(state, f)).length;
+  const principais = game.FASES_PRINCIPAIS;
+  const zeradas = principais.filter((f) => game.isPhaseComplete(state, f)).length;
   const missoesFeitas = [...CAT.ids].reduce((a, id) => a + game.missionsDone(state, id), 0);
   const missoesTotal = [...CAT.missionCount.values()].reduce((a, b) => a + b, 0);
 
   const cards = game.FASES.map((fase, i) => {
     const liberada = game.isUnlocked(state, i);
     const completa = game.isPhaseComplete(state, fase);
-    const cls = ['card', !liberada && 'card--bloqueada', completa && 'card--zerada'].filter(Boolean).join(' ');
-    const badge = !liberada ? '🔒 BLOQUEADA' : completa ? '★ ZERADA' : `${fase.cartuchos.length > 1 ? '2 CARTUCHOS' : 'LIBERADA'}`;
+    const cls = ['card', fase.bonus && 'card--bonus', !liberada && 'card--bloqueada', completa && 'card--zerada'].filter(Boolean).join(' ');
+    const badge = !liberada ? '🔒 BLOQUEADA' : completa ? '★ ZERADA' : fase.cartuchos.length > 1 ? '2 CARTUCHOS' : 'LIBERADA';
+    const aviso = fase.bonus
+      ? 'Zera a fase 5 (IA, who?) pra desbloquear. Ou liga o modo livre em Opções.'
+      : `Zera a fase ${i} pra desbloquear. Ou liga o modo livre em Opções.`;
 
     const corpo = !liberada
-      ? h('p', { class: 'card__aviso' }, `Zera a fase ${i} pra desbloquear. Ou liga o modo livre em Opções.`)
+      ? h('p', { class: 'card__aviso' }, aviso)
       : h('div', { class: 'card__cartuchos' }, fase.cartuchos.map((c) => {
         const st = statusCartucho(c.id);
-        const total = game.DOCS[c.id].missoes;
+        const doc = game.DOCS[c.id];
+        const lidas = game.telasRead(state, c.id);
         const feitas = game.missionsDone(state, c.id);
         return h('div', { class: `cartucho cartucho--${st.cls}` },
-          h('div', { class: 'cartucho__linha' },
-            h('span', { class: 'cartucho__nome' }, c.rotulo ? `Cartucho ${c.rotulo}` : 'Missões'),
-            h('span', { class: 'cartucho__conta' }, `${feitas}/${total}`)),
-          barra(total ? feitas / total : 0, `Missões feitas: ${feitas} de ${total}`),
+          c.rotulo ? h('p', { class: 'cartucho__nome' }, `Cartucho ${c.rotulo}`) : null,
+          h('div', { class: 'cartucho__linha' }, h('span', {}, '📖 Telas lidas'), h('span', {}, `${lidas}/${doc.telas.length}`)),
+          barra(doc.telas.length ? lidas / doc.telas.length : 0, `Telas lidas: ${lidas} de ${doc.telas.length}`),
+          h('div', { class: 'cartucho__linha' }, h('span', {}, '🎯 Missões'), h('span', {}, `${feitas}/${doc.missoes}`)),
+          barra(doc.missoes ? feitas / doc.missoes : 0, `Missões feitas: ${feitas} de ${doc.missoes}`),
           h('a', { href: `#/fase/${c.id}`, class: 'btn btn--card' },
             `${st.btn}${c.rotulo ? ` · ${c.rotulo.toUpperCase()}` : ''}`,
-            h('span', { class: 'sr-only' }, ` a fase ${fase.numero}, ${fase.nome}`)));
+            h('span', { class: 'sr-only' }, ` ${nomeFase(fase).toLowerCase()}, ${fase.nome}`)));
       }));
 
     return h('li', { class: cls },
       h('div', { class: 'card__topo' },
-        h('span', { class: 'card__num' }, `FASE ${String(fase.numero).padStart(2, '0')}`),
+        h('span', { class: 'card__num' }, nomeFase(fase)),
         h('span', { class: 'card__badge' }, badge)),
       h('span', { class: 'card__icone', 'aria-hidden': 'true' }, fase.icone),
       h('h2', { class: 'card__nome' }, fase.nome),
@@ -216,7 +226,9 @@ function telaMapa() {
   return h('section', { class: 'tela-mapa' },
     titulo('MAPA DAS FASES', 'tela__titulo'),
     h('p', { class: 'tela__sub' },
-      `${zeradas} de ${game.FASES.length} fases zeradas · ${missoesFeitas} de ${missoesTotal} missões`),
+      `${zeradas} de ${principais.length} fases zeradas · ${missoesFeitas} de ${missoesTotal} missões`),
+    h('p', { class: 'tela__dica' },
+      'Como jogar: cada fase é dividida em telas. Lê, aperta OK pra ganhar XP e avançar, e vai marcando as missões no painel. Leu todas as telas? Zera a fase e desbloqueia a próxima.'),
     game.allComplete(state)
       ? h('a', { href: '#/fim', class: 'banner-fim' }, '🏆 Tu zerou o jogo! Ver a tela final ▶')
       : null,
@@ -227,103 +239,226 @@ function telaMapa() {
   );
 }
 
+// ---------------------------------------------------------------------------
+// Fase: tela de jogo 16:9, com o conteúdo dividido em telas
+// ---------------------------------------------------------------------------
+
+let teclaFase = null;
+
 function telaFase(id) {
   const found = game.findPhase(id);
   if (!found) return null;
   const { index, fase, cartucho } = found;
   if (!game.isUnlocked(state, index)) {
-    toast(`🔒 A fase ${fase.numero} ainda tá bloqueada.`, 'alerta');
+    toast(`🔒 A ${nomeFase(fase).toLowerCase()} ainda tá bloqueada.`, 'alerta');
     location.hash = '#/mapa';
     return null;
   }
   const doc = game.DOCS[id];
+  const total = doc.telas.length;
+  const FIM = total; // índice da tela final (resumo + zerar)
 
   if (!state.opened.has(id)) {
     commit((s) => { s.opened.add(id); s.last = id; });
-    toast(`🕹️ Fase ${fase.numero} iniciada! +${game.XP.abrir} XP`, 'xp');
+    toast(`🕹️ ${nomeFase(fase)} iniciada! +${game.XP.abrir} XP`, 'xp');
   }
 
-  const contador = h('span', { class: 'fase__contador' });
-  const atualizarContador = () => {
-    contador.textContent = `MISSÕES ${game.missionsDone(state, id)}/${doc.missoes}`;
+  const lidas = () => state.read.get(id) ?? new Set();
+  const primeiraNaoLida = () => {
+    for (let i = 0; i < total; i += 1) if (!lidas().has(i)) return i;
+    return FIM;
   };
-  atualizarContador();
+  let atual = state.completed.has(id) ? 0 : primeiraNaoLida();
 
-  const conteudo = renderBlocks(doc.blocos, {
-    prefix: `m-${id}`,
-    isDone: (n) => state.missions.get(id)?.has(n) ?? false,
-    onToggle: (n, done) => {
-      commit((s) => {
-        const set = s.missions.get(id) ?? new Set();
-        if (done) set.add(n); else set.delete(n);
-        s.missions.set(id, set);
-      });
-      if (done) toast(`✅ Missão cumprida! +${game.XP.missao} XP`, 'xp');
-      atualizarContador();
+  // --- elementos fixos do palco
+  const dots = h('ol', { class: 'palco__dots', 'aria-label': 'Telas da fase' });
+  const contadorTela = h('span', { class: 'palco__contador' });
+  const contadorMissoes = h('span', {});
+  const corpoTela = h('div', { class: 'palco__tela papel', tabindex: -1 });
+  const painel = h('aside', { class: 'painel-missoes', 'aria-label': 'Missões da fase' });
+  const btnVoltar = h('button', { type: 'button', class: 'btn btn--ghost', onClick: () => irPara(atual - 1) }, '◀ VOLTAR');
+  const btnOk = h('button', { type: 'button', class: 'btn btn--start palco__ok', onClick: () => confirmar() });
+  const btnPainel = h('button', {
+    type: 'button',
+    class: 'btn btn--ghost palco__toggle',
+    'aria-expanded': 'false',
+    onClick: () => {
+      const aberto = palco.classList.toggle('palco--missoes-abertas');
+      btnPainel.setAttribute('aria-expanded', String(aberto));
+      if (aberto) painel.querySelector('input')?.focus();
     },
-  });
+  }, '🎯 ', contadorMissoes);
 
-  const fim = h('div', { class: 'fim-fase' });
-  const desenharFim = (liberado) => {
-    const proxima = game.FASES[index + 1];
-    const zerada = state.completed.has(id);
-    const proximaLink = proxima && game.isUnlocked(state, index + 1)
-      ? h('a', { href: `#/fase/${proxima.cartuchos[0].id}`, class: 'btn btn--start' },
-        proxima.cartuchos.length > 1 ? `PRÓXIMA FASE: ${proxima.nome} ▶` : `PRÓXIMA FASE ▶`)
-      : null;
-    if (zerada) {
-      fim.replaceChildren(
-        h('p', { class: 'fim-fase__titulo', tabindex: -1 }, '★ FASE ZERADA ★'),
-        h('div', { class: 'fim-fase__acoes' },
-          proximaLink ?? (game.allComplete(state)
-            ? h('a', { href: '#/fim', class: 'btn btn--start' }, 'VER TELA FINAL 🏆')
-            : null),
-          h('a', { href: '#/mapa', class: 'btn btn--ghost-escuro' }, 'VOLTAR PRO MAPA')));
-      return;
-    }
-    const botao = h('button', {
-      type: 'button',
-      class: 'btn btn--start',
-      disabled: !liberado,
-      onClick: () => {
-        commit((s) => { s.completed.add(id); });
-        toast(`🏁 FASE ZERADA! +${game.XP.zerar} XP`, 'xp');
-        desenharFim(true);
-        fim.querySelector('.fim-fase__titulo')?.focus();
-      },
-    }, `ZERAR FASE · +${game.XP.zerar} XP`);
-    fim.replaceChildren(
-      h('p', { class: 'fim-fase__titulo', tabindex: -1 }, liberado ? 'Chegou no fim! 🎉' : 'Lê até aqui embaixo pra liberar o botão ⬇️'),
-      h('div', { class: 'fim-fase__acoes' }, botao,
-        h('a', { href: '#/mapa', class: 'btn btn--ghost-escuro' }, 'VOLTAR PRO MAPA')));
-  };
-  desenharFim(false);
-
-  const sentinela = h('div', { class: 'sentinela', 'aria-hidden': 'true' });
-  if ('IntersectionObserver' in window) {
-    pageObserver = new IntersectionObserver((entries) => {
-      if (entries.some((e) => e.isIntersecting)) {
-        pageObserver?.disconnect();
-        if (!state.completed.has(id)) desenharFim(true);
-      }
-    });
-    queueMicrotask(() => pageObserver?.observe(sentinela));
-  } else {
-    desenharFim(true);
+  function atualizarContadores() {
+    contadorMissoes.textContent = `Missões ${game.missionsDone(state, id)}/${doc.missoes}`;
   }
 
-  const rotuloFase = `FASE ${String(fase.numero).padStart(2, '0')}${cartucho.rotulo ? ` · CARTUCHO ${cartucho.rotulo.toUpperCase()}` : ''}`;
+  function desenharPainel() {
+    const feitas = state.missions.get(id) ?? new Set();
+    painel.replaceChildren(
+      h('p', { class: 'painel-missoes__titulo' }, `🎯 MISSÕES ${feitas.size}/${doc.missoes}`),
+      h('p', { class: 'painel-missoes__dica' }, `Fez na vida real? Marca aqui! +${game.XP.missao} XP cada`),
+      h('ul', { class: 'painel-missoes__lista' }, doc.lista_missoes.map((m) => {
+        const mid = `${id}-missao-${m.m}`;
+        return h('li', { class: 'missao' },
+          h('input', {
+            type: 'checkbox', id: mid, class: 'missao__check', checked: feitas.has(m.m),
+            onChange: (ev) => {
+              const done = ev.target.checked;
+              commit((s) => {
+                const set = s.missions.get(id) ?? new Set();
+                if (done) set.add(m.m); else set.delete(m.m);
+                s.missions.set(id, set);
+              });
+              if (done) toast(`✅ Missão cumprida! +${game.XP.missao} XP`, 'xp');
+              painel.querySelector('.painel-missoes__titulo').textContent = `🎯 MISSÕES ${game.missionsDone(state, id)}/${doc.missoes}`;
+              atualizarContadores();
+              if (atual === FIM) desenharTela();
+            },
+          }),
+          h('label', { for: mid, class: 'missao__texto' }, inline(m.c)));
+      })),
+    );
+  }
 
-  return h('article', { class: 'tela-fase' },
-    h('header', { class: 'fase__cabecalho' },
-      h('p', { class: 'fase__num' }, rotuloFase),
-      titulo(doc.titulo, 'fase__titulo'),
-      h('div', { class: 'fase__meta' },
-        contador,
-        h('span', { class: 'fase__xp' }, `+${game.XP.missao} XP por missão`),
-        tooltip('ⓘ REVISÃO', fase.revisao))),
-    h('div', { class: 'papel' }, conteudo, sentinela, fim),
+  function desenharDots() {
+    dots.replaceChildren(...doc.telas.map((tela, i) => {
+      const lida = lidas().has(i);
+      return h('li', {},
+        h('button', {
+          type: 'button',
+          class: `dot ${lida ? 'dot--lida' : ''} ${i === atual ? 'dot--atual' : ''}`,
+          'aria-label': `Tela ${i + 1}${lida ? ', lida' : ''}`,
+          'aria-current': i === atual ? 'step' : null,
+          onClick: () => irPara(i),
+        }));
+    }), h('li', {},
+      h('button', {
+        type: 'button',
+        class: `dot dot--fim ${atual === FIM ? 'dot--atual' : ''} ${state.completed.has(id) ? 'dot--lida' : ''}`,
+        'aria-label': 'Tela final',
+        'aria-current': atual === FIM ? 'step' : null,
+        onClick: () => irPara(FIM),
+      }, '🏁')));
+  }
+
+  function desenharTela() {
+    corpoTela.scrollTop = 0;
+    if (atual === FIM) {
+      const nLidas = lidas().size;
+      const faltam = total - nLidas;
+      const zerada = state.completed.has(id);
+      const proxIndex = index + 1;
+      const proxima = game.FASES[proxIndex];
+      const proximaLiberada = proxima && game.isUnlocked(state, proxIndex);
+      contadorTela.textContent = 'FIM DA FASE';
+      btnOk.hidden = true;
+      corpoTela.replaceChildren(
+        h('div', { class: 'fim-fase' },
+          h('h2', { class: 'fim-fase__titulo', tabindex: -1 }, zerada ? '★ FASE ZERADA ★' : '🏁 Fim da fase'),
+          h('ul', { class: 'fim-fase__stats' },
+            h('li', {}, h('strong', {}, `${nLidas}/${total}`), ' telas lidas'),
+            h('li', {}, h('strong', {}, `${game.missionsDone(state, id)}/${doc.missoes}`), ' missões feitas')),
+          zerada ? null : faltam > 0
+            ? h('p', {}, `Falta${faltam > 1 ? 'm' : ''} ${faltam} tela${faltam > 1 ? 's' : ''} pra zerar. As missões não são obrigatórias: dá pra ir fazendo com calma.`)
+            : h('p', {}, 'Tu leu tudo! As missões podem ficar pra depois, mas cada uma vale XP. 😉'),
+          h('div', { class: 'fim-fase__acoes' },
+            zerada ? null : faltam > 0
+              ? h('button', { type: 'button', class: 'btn btn--start', onClick: () => irPara(primeiraNaoLida()) }, 'IR PRA TELA QUE FALTA ▶')
+              : h('button', {
+                type: 'button',
+                class: 'btn btn--start',
+                onClick: () => {
+                  commit((s) => { s.completed.add(id); });
+                  toast(`🏁 FASE ZERADA! +${game.XP.zerar} XP`, 'xp');
+                  desenharTudo();
+                },
+              }, `ZERAR FASE · +${game.XP.zerar} XP`),
+            zerada && proximaLiberada
+              ? h('a', { href: `#/fase/${proxima.cartuchos[0].id}`, class: 'btn btn--start' }, `${nomeFase(proxima)}: ${proxima.nome} ▶`)
+              : null,
+            zerada && game.allComplete(state) && !proximaLiberada
+              ? h('a', { href: '#/fim', class: 'btn btn--start' }, 'VER TELA FINAL 🏆')
+              : null,
+            h('a', { href: '#/mapa', class: 'btn btn--ghost-escuro' }, 'VOLTAR PRO MAPA'))),
+      );
+    } else {
+      const tela = doc.telas[atual];
+      const lida = lidas().has(atual);
+      contadorTela.textContent = `TELA ${atual + 1} DE ${total}`;
+      btnOk.hidden = false;
+      btnOk.replaceChildren(lida
+        ? (atual === total - 1 ? 'FIM DA FASE ▶' : 'PRÓXIMA ▶')
+        : `OK, LI! ▶ +${game.XP.ler} XP`);
+      corpoTela.replaceChildren(
+        h('h2', { class: 'palco__titulo-tela', tabindex: -1 }, inline(tela.titulo)),
+        ...renderBlocks(tela.blocos, { copiar: true }).filter(Boolean),
+      );
+    }
+    btnVoltar.disabled = atual === 0;
+    desenharDots();
+  }
+
+  function desenharTudo() {
+    atualizarContadores();
+    desenharPainel();
+    desenharTela();
+  }
+
+  function irPara(i, focar = true) {
+    atual = Math.min(Math.max(i, 0), FIM);
+    desenharTela();
+    if (focar) corpoTela.querySelector('h2')?.focus({ preventScroll: true });
+    // No celular o palco vira coluna: volta pro topo dele a cada tela nova.
+    if (focar && window.matchMedia('(max-width: 900px), (max-height: 600px)').matches) {
+      palco.scrollIntoView({ block: 'start', behavior: 'instant' });
+    }
+  }
+
+  function confirmar() {
+    if (atual >= FIM) return;
+    if (!lidas().has(atual)) {
+      const n = atual;
+      commit((s) => {
+        const set = s.read.get(id) ?? new Set();
+        set.add(n);
+        s.read.set(id, set);
+      });
+      toast(`📖 Tela lida! +${game.XP.ler} XP`, 'xp');
+    }
+    irPara(atual + 1);
+  }
+
+  // Setas do teclado: → avança (OK), ← volta. Não interfere quando o foco tá num campo.
+  if (teclaFase) window.removeEventListener('keydown', teclaFase);
+  teclaFase = (ev) => {
+    if (!document.body.contains(palco)) { window.removeEventListener('keydown', teclaFase); teclaFase = null; return; }
+    if (ev.target.closest?.('input, textarea, select') || ev.altKey || ev.ctrlKey || ev.metaKey) return;
+    if (ev.key === 'ArrowRight') { ev.preventDefault(); if (atual < FIM) confirmar(); }
+    if (ev.key === 'ArrowLeft') { ev.preventDefault(); irPara(atual - 1); }
+  };
+  window.addEventListener('keydown', teclaFase);
+
+  const palco = h('section', { class: 'palco', 'aria-label': `${nomeFase(fase)}: ${doc.titulo}` },
+    h('header', { class: 'palco__topo' },
+      h('div', { class: 'palco__info' },
+        h('p', { class: 'palco__fase' }, `${nomeFase(fase)}${cartucho.rotulo ? ` · CARTUCHO ${cartucho.rotulo.toUpperCase()}` : ''}`),
+        h('h1', { class: 'palco__titulo', tabindex: -1 }, doc.titulo)),
+      h('div', { class: 'palco__extras' },
+        tooltip('ⓘ REVISÃO', fase.revisao),
+        btnPainel)),
+    dots,
+    h('div', { class: 'palco__corpo' }, corpoTela, painel),
+    h('footer', { class: 'palco__base' },
+      btnVoltar,
+      h('div', { class: 'palco__meio' },
+        contadorTela,
+        h('span', { class: 'palco__teclas', 'aria-hidden': 'true' }, 'Dica: setas ← → do teclado')),
+      btnOk),
   );
+
+  desenharTudo();
+  return h('div', { class: 'tela-jogo' }, palco);
 }
 
 function telaManual() {
@@ -462,6 +597,11 @@ function route() {
   app.replaceChildren(view);
   window.scrollTo(0, 0);
   app.querySelector('h1')?.focus({ preventScroll: true });
+  // Em tela grande, a fase abre com o palco ocupando a tela, tipo jogo mesmo.
+  const palco = app.querySelector('.palco');
+  if (palco && window.matchMedia('(min-width: 901px) and (min-height: 601px)').matches) {
+    palco.scrollIntoView({ block: 'start', behavior: 'instant' });
+  }
 }
 
 // ---------------------------------------------------------------------------

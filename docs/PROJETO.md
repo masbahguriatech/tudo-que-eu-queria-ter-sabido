@@ -6,15 +6,23 @@
 
 ## 🎮 Como jogar
 
-O fliperama transforma os conteúdos do repositório em **fases**. Tu começa na fase 1 e, quando zera uma fase, a próxima é desbloqueada. Se preferir jogar fora de ordem, liga o **modo livre** em Opções.
+O fliperama transforma os conteúdos do repositório em **fases**, e cada fase é dividida em **telas**, mostradas num palco no formato 16:9, tipo tela de jogo:
+
+- **Lê a tela** e aperta **OK, LI!** (ou a seta → do teclado) pra ganhar XP e ir pra próxima
+- **Marca as missões** no painel do lado quando fizer elas na vida real
+- **Leu todas as telas?** Na tela final (🏁) tu zera a fase e desbloqueia a próxima
+- **As missões não são obrigatórias** pra zerar: dá pra ir fazendo com calma e voltar depois
+
+Tu começa na fase 1. A **fase bônus** (prompts) desbloqueia quando tu zera a fase 5, de IA. Se preferir jogar fora de ordem, liga o **modo livre** em Opções.
 
 ### Como ganhar XP
 
 | Ação | XP |
 |---|---|
 | Abrir uma fase pela primeira vez | +10 |
-| Completar uma missão (os quadradinhos das listas de missões) | +15 |
-| Zerar uma fase (ler até o fim e apertar o botão) | +100 |
+| Ler uma tela (apertar OK, LI!) | +5 |
+| Completar uma missão (os quadradinhos do painel de missões) | +15 |
+| Zerar uma fase (ler todas as telas e apertar o botão na tela final) | +100 |
 | Desbloquear uma conquista | +50 |
 
 A fase 3 tem dois cartuchos (gurias e guris). Zerar qualquer um deles conta como fase zerada, e jogar os dois desbloqueia uma conquista bônus.
@@ -28,8 +36,9 @@ A fase 3 tem dois cartuchos (gurias e guris). Zerar qualquer um deles conta como
 | 3 | 300 | Formando a party |
 | 4 | 600 | Missão em andamento |
 | 5 | 1000 | Subindo de nível |
-| 6 | 1500 | Modo multiplayer |
-| 7 | 1900 | Lenda do fliperama |
+| 6 | 1500 | Chefona de fase |
+| 7 | 2100 | Modo multiplayer |
+| 8 | 2800 | Lenda do fliperama |
 
 ---
 
@@ -99,7 +108,8 @@ A navegação usa o endereço depois do `#`, e só rotas conhecidas são aceitas
 |---|---|
 | `#/` | Tela inicial |
 | `#/mapa` | Mapa das fases |
-| `#/fase/01` … `#/fase/05` | Uma fase (a 3 é `#/fase/03-gurias` ou `#/fase/03-guris`) |
+| `#/fase/01` … `#/fase/06` | Uma fase (a 3 é `#/fase/03-gurias` ou `#/fase/03-guris`) |
+| `#/fase/07` | Fase bônus |
 | `#/manual` | Este manual |
 | `#/opcoes` | Opções e save |
 | `#/fim` | Tela de jogo zerado |

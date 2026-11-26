@@ -73,11 +73,28 @@ PHASES = [
     },
     {
         "numero": 5,
+        "icone": "🤖",
+        "nome": "IA, who?",
+        "resumo": "O que é IA, como funciona e pra que serve cada ferramenta.",
+        "cartuchos": [{"id": "05", "arquivo": "05-ia-who.md", "rotulo": None}],
+        "revisao": "Revisado em " + REVISAO + ". Ferramentas de IA mudam muito rápido: nomes, planos e regras de idade podem ter mudado. Confere no site oficial de cada uma.",
+    },
+    {
+        "numero": 6,
         "icone": "🎮",
         "nome": "Comunidades tech",
         "resumo": "Onde vivem, do que se alimentam e como montar tua party.",
-        "cartuchos": [{"id": "05", "arquivo": "05-comunidades-tech.md", "rotulo": None}],
+        "cartuchos": [{"id": "06", "arquivo": "06-comunidades-tech.md", "rotulo": None}],
         "revisao": "Lista revisada em " + REVISAO + ". Comunidades e eventos mudam de agenda e de casa: confere nas redes de cada uma.",
+    },
+    {
+        "numero": 7,
+        "bonus": True,
+        "icone": "⭐",
+        "nome": "Fase bônus: prompts",
+        "resumo": "Prompts prontos pra aprofundar cada fase com a ajuda de uma IA.",
+        "cartuchos": [{"id": "07", "arquivo": "07-bonus-prompts.md", "rotulo": None}],
+        "revisao": "Revisado em " + REVISAO + ". Confere sempre as regras de idade e privacidade da IA que tu usar.",
     },
 ]
 
@@ -353,6 +370,40 @@ def plain_text(nodes: list) -> str:
     return "".join(out)
 
 
+def split_screens(blocks: list) -> tuple[list, list]:
+    """Divide o conteúdo em telas (uma por título ##) e separa as missões.
+
+    A seção que tem a lista de missões não vira tela: as missões vão pro painel lateral.
+    """
+    telas: list = []
+    atual = {"titulo": [{"t": "text", "v": "Começo"}], "blocos": []}
+    for b in blocks:
+        if b["t"] == "h" and b["l"] == 2:
+            telas.append(atual)
+            atual = {"titulo": b["c"], "blocos": []}
+        else:
+            atual["blocos"].append(b)
+    telas.append(atual)
+
+    missoes: list = []
+    resultado: list = []
+    for tela in telas:
+        listas = [b for b in tela["blocos"] if b["t"] in ("ul", "ol") and any(i.get("task") for i in b["items"])]
+        if listas:
+            for lista in listas:
+                for it in lista["items"]:
+                    if it.get("task"):
+                        missoes.append({"m": it["m"], "c": it["c"]})
+            continue
+        while tela["blocos"] and tela["blocos"][0]["t"] == "hr":
+            tela["blocos"].pop(0)
+        while tela["blocos"] and tela["blocos"][-1]["t"] == "hr":
+            tela["blocos"].pop()
+        if tela["blocos"]:
+            resultado.append(tela)
+    return resultado, missoes
+
+
 def compile_doc(path: pathlib.Path) -> dict:
     ctx = Ctx(str(path.relative_to(ROOT)))
     lines = path.read_text(encoding="utf-8").replace("\r\n", "\n").split("\n")
@@ -362,7 +413,11 @@ def compile_doc(path: pathlib.Path) -> dict:
     title = plain_text(blocks[0]["c"]).strip()
     blocks = blocks[1:]
     missions = number_missions(blocks)
-    return {"titulo": title, "missoes": missions, "blocos": blocks, "_ctx": ctx}
+    telas, lista_missoes = split_screens(blocks)
+    if len(lista_missoes) != missions:
+        raise BuildError(f"{ctx.origem}: as missões precisam ficar todas na seção de missões")
+    return {"titulo": title, "missoes": missions, "blocos": blocks, "telas": telas,
+            "lista_missoes": lista_missoes, "_ctx": ctx}
 
 
 # ---------------------------------------------------------------------------
@@ -381,12 +436,14 @@ def main() -> int:
                 raise BuildError(f"arquivo não encontrado: {path}")
             doc = compile_doc(path)
             ctx = doc.pop("_ctx")
+            del doc["blocos"]  # no jogo o conteúdo vai em telas
             docs[c["id"]] = doc
             total_missoes += doc["missoes"]
             cartuchos.append({"id": c["id"], "rotulo": c["rotulo"], "arquivo": c["arquivo"]})
-            print(f"  ✓ {c['arquivo']}: {doc['missoes']} missões, "
+            print(f"  ✓ {c['arquivo']}: {len(doc['telas'])} telas, {doc['missoes']} missões, "
                   f"{ctx.links_externos} links externos, {ctx.links_internos} internos")
         fases.append({
+            "bonus": bool(p.get("bonus")),
             "numero": p["numero"],
             "icone": p["icone"],
             "nome": p["nome"],
@@ -397,6 +454,8 @@ def main() -> int:
 
     manual = compile_doc(DOCS_FILE)
     manual.pop("_ctx")
+    for k in ("telas", "lista_missoes"):
+        manual.pop(k)
     print(f"  ✓ docs/PROJETO.md")
 
     data = {"fases": fases, "docs": docs, "manual": manual, "revisao": REVISAO}

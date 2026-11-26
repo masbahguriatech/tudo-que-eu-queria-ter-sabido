@@ -688,6 +688,170 @@ img, svg { max-width: 100%; }
 .fim-fase__acoes { display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem; }
 
 /* ==========================================================================
+   Palco da fase: tela de jogo 16:9
+   ========================================================================== */
+
+.tela__dica { max-width: 72ch; margin: -.6rem 0 1.5rem; color: var(--lilas); font-size: .95rem; }
+
+.card--bonus { border-color: var(--magenta); border-style: dashed; }
+.card--bonus .card__num { color: var(--magenta); }
+
+.tela-jogo { max-width: 1280px; margin: 0 auto; }
+
+.palco {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  width: min(100%, calc((100svh - 2rem) * 16 / 9));
+  aspect-ratio: 16 / 9;
+  margin: 0 auto;
+  background: var(--roxo-noite);
+  border: var(--px) solid var(--roxo-eletrico);
+  box-shadow: 8px 8px 0 var(--tinta);
+  overflow: hidden;
+  scroll-margin-top: 1rem;
+}
+
+.palco__topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem 1rem;
+  padding: .7rem 1.2rem;
+  border-bottom: 2px solid var(--grafite);
+}
+.palco__fase { margin: 0; font-family: var(--f-arcade); font-size: .75rem; font-weight: 800; letter-spacing: .12em; color: var(--magenta); }
+.palco__titulo { margin: .1rem 0 0; font-size: clamp(1rem, 1.8vw, 1.3rem); font-weight: 700; line-height: 1.2; color: var(--nevoa); outline: none; }
+.palco__extras { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
+.palco__toggle { display: none; padding: .45rem .8rem; font-size: .8rem; }
+
+.palco__dots {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .4rem;
+  margin: 0;
+  padding: .55rem 1.2rem;
+  list-style: none;
+  background: var(--roxo-profundo);
+  border-bottom: 2px solid var(--grafite);
+}
+.dot {
+  display: block;
+  width: 18px; height: 18px;
+  padding: 0;
+  border: 2px solid var(--lilas);
+  background: transparent;
+  cursor: pointer;
+}
+.dot:hover { background: var(--violeta); }
+.dot--lida { background: var(--magenta); border-color: var(--magenta); }
+.dot--atual { outline: 3px solid var(--nevoa); outline-offset: 2px; }
+.dot--fim { width: auto; height: 22px; padding: 0 .35rem; font-size: .75rem; line-height: 1; }
+
+.palco__corpo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 30%);
+  min-height: 0;
+}
+
+.palco__tela.papel {
+  min-height: 0;
+  overflow-y: auto;
+  border: 0;
+  box-shadow: none;
+  outline: none;
+  padding: clamp(1rem, 2.4vw, 2rem) clamp(1rem, 3vw, 2.4rem);
+}
+.palco__titulo-tela { margin-top: 0 !important; outline: none; }
+
+/* Painel de missões */
+.painel-missoes {
+  min-height: 0;
+  overflow-y: auto;
+  padding: 1rem;
+  background: var(--roxo-profundo);
+  border-left: 3px solid var(--roxo-eletrico);
+}
+.painel-missoes__titulo { margin: 0; font-family: var(--f-arcade); font-weight: 800; font-size: .9rem; color: var(--nevoa); }
+.painel-missoes__dica { margin: .25rem 0 .8rem; font-size: .82rem; color: var(--lilas); }
+.painel-missoes__lista { margin: 0; padding: 0; list-style: none; }
+.painel-missoes .missao {
+  grid-template-columns: auto 1fr;
+  gap: .6rem;
+  margin: .45rem 0;
+  padding: .5rem .6rem;
+  background: var(--roxo-noite);
+  border: 2px solid var(--grafite);
+  font-size: .88rem;
+}
+.painel-missoes .missao:hover { border-color: var(--violeta); }
+.painel-missoes .missao__check { width: 1.25rem; height: 1.25rem; border-color: var(--lilas); background: var(--roxo-noite); }
+.painel-missoes .missao__check:checked { background: var(--magenta); box-shadow: inset 0 0 0 3px var(--roxo-noite); }
+.painel-missoes .missao__texto { color: var(--nevoa); }
+.painel-missoes .missao:has(.missao__check:checked) { border-color: var(--magenta); }
+.painel-missoes .missao__texto code { background: var(--grafite); color: var(--nevoa); }
+
+/* Base do palco: voltar, contador, OK */
+.palco__base {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: .8rem;
+  padding: .7rem 1.2rem;
+  background: var(--roxo-profundo);
+  border-top: 2px solid var(--grafite);
+}
+.palco__meio { display: grid; justify-items: center; gap: .1rem; text-align: center; }
+.palco__contador { font-family: var(--f-arcade); font-weight: 800; font-size: .85rem; color: var(--nevoa); letter-spacing: .08em; }
+.palco__teclas { font-size: .75rem; color: var(--lilas); }
+.palco__ok[hidden] { display: none; }
+.palco__base .btn { padding: .7rem 1rem; font-size: .85rem; }
+
+/* Tela final da fase */
+.palco .fim-fase { margin: 0; border: 0; padding: 1rem 0; }
+.fim-fase__stats { display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem 2rem; margin: 0 0 1rem; padding: 0; list-style: none; }
+.fim-fase__stats strong { display: block; font-family: var(--f-arcade); font-size: 1.6rem; color: var(--roxo-eletrico); }
+
+/* Botão de copiar prompt */
+.copiar { margin: 1.2rem 0; }
+.copiar pre { margin: 0; }
+.copiar__barra { display: flex; flex-wrap: wrap; align-items: center; gap: .8rem; margin-top: .45rem; }
+.copiar__btn {
+  min-height: 40px;
+  padding: .45rem .9rem;
+  border: 2px solid var(--roxo-profundo);
+  background: var(--roxo-eletrico);
+  color: var(--nevoa);
+  font-family: var(--f-arcade);
+  font-size: .8rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 3px 3px 0 var(--roxo-profundo);
+}
+.copiar__btn:active { transform: translate(3px, 3px); box-shadow: none; }
+.copiar__status { font-size: .88rem; font-weight: 600; color: var(--roxo-eletrico); }
+
+/* Celular, tablet em pé e telas baixas: o palco vira coluna, com os botões sempre à mão */
+@media (max-width: 900px), (max-height: 600px) {
+  .palco { width: 100%; aspect-ratio: auto; overflow: visible; }
+  .palco__corpo { grid-template-columns: 1fr; }
+  .palco__tela.papel { overflow: visible; }
+  .painel-missoes { display: none; border-left: 0; border-bottom: 3px solid var(--roxo-eletrico); order: -1; }
+  .palco--missoes-abertas .painel-missoes { display: block; }
+  .palco__toggle { display: inline-flex; }
+  .palco__base { position: sticky; bottom: 0; z-index: 5; }
+  .palco__teclas { display: none; }
+}
+
+@media (max-width: 480px) {
+  .palco__topo, .palco__dots, .palco__base { padding-inline: .8rem; }
+  .palco__base { gap: .5rem; }
+  .palco__base .btn { padding: .65rem .7rem; font-size: .78rem; }
+  .dot { width: 16px; height: 16px; }
+}
+
+/* ==========================================================================
    Opções
    ========================================================================== */
 

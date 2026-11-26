@@ -1,6 +1,6 @@
 # 🎮 Comunidades tech: o que são, onde vivem, do que se alimentam?
 
-> Fase 5 do repositório. A última fase, e a mais importante: montar a tua party. Porque **ninguém zera tech no modo solo.**
+> Fase 6 do repositório. A última fase, e a mais importante: montar a tua party. Porque **ninguém zera tech no modo solo.**
 
 > 🗓️ **Save point:** lista revisada em novembro de 2026. Comunidades e eventos mudam de agenda, de nome e de casa, então confere nas redes de cada uma antes de ir.
 
@@ -242,6 +242,7 @@ Se tu chegou até aqui, tu passou por todas as fases desse repositório:
 📣 Aprendeu a aparecer e contar tua história.\
 💸 Entendeu que dinheiro guardado é liberdade.\
 🎓 Conheceu o mapa da tecnologia e as rotas pra chegar lá.\
+🤖 Aprendeu a usar IA a teu favor, sem cair em cilada.\
 🎮 E agora sabe onde encontrar a tua party.
 
 Tudo isso eu gostaria de ter sabido quando me formei no ensino médio. Mas sabe o que eu aprendi de mais importante? **Que eu não precisava saber tudo sozinha.** Que tinha gente disposta a me ensinar, a me apresentar, a me indicar, a me lembrar que eu merecia estar ali.
@@ -251,6 +252,8 @@ A tecnologia pode parecer um jogo difícil, cheio de chefões e fases confusas. 
 E um dia, quando tu já tiver alguns níveis a mais, vai ser a tua vez de estender a mão pra quem tá chegando.
 
 **Bora jogar no modo multiplayer?** 💜
+
+👉 Quer ir mais fundo? Tem uma [fase bônus com prompts pra cada fase](./07-bonus-prompts.md).
 
 ---
 

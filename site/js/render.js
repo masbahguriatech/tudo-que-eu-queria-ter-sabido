@@ -5,7 +5,7 @@ import { h, safeHref } from './dom.js';
 
 const CALLOUT_LABEL = { tip: 'Dica', warn: 'Atenção', save: 'Save point' };
 
-function inline(nodes = []) {
+export function inline(nodes = []) {
   return nodes.map((n) => {
     switch (n?.t) {
       case 'text': return document.createTextNode(String(n.v));
@@ -52,7 +52,26 @@ function block(b, opts) {
     }
     case 'p': return h('p', {}, inline(b.c));
     case 'hr': return h('hr', { class: 'divisor' });
-    case 'pre': return h('pre', { tabindex: 0 }, h('code', {}, String(b.v)));
+    case 'pre': {
+      const texto = String(b.v);
+      const pre = h('pre', { tabindex: 0 }, h('code', {}, texto));
+      if (!opts.copiar) return pre;
+      const status = h('span', { class: 'copiar__status', role: 'status' });
+      const botao = h('button', {
+        type: 'button',
+        class: 'copiar__btn',
+        onClick: async () => {
+          try {
+            await navigator.clipboard.writeText(texto);
+            status.textContent = 'Copiado! ✓';
+          } catch {
+            status.textContent = 'Não deu pra copiar: seleciona o texto e copia manualmente.';
+          }
+          window.setTimeout(() => { status.textContent = ''; }, 2500);
+        },
+      }, '📋 Copiar');
+      return h('div', { class: 'copiar' }, pre, h('div', { class: 'copiar__barra' }, botao, status));
+    }
     case 'quote': {
       const kind = ['tip', 'warn', 'save'].includes(b.k) ? b.k : 'quote';
       return h(

@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  🪪 LinkedIn · 📣 Postar sem vergonha · 💸 Dim dim · 🎓 Faculdade · 🎮 Comunidades tech
+  🪪 LinkedIn · 📣 Postar sem vergonha · 💸 Dim dim · 🎓 Faculdade · 🤖 IA · 🎮 Comunidades tech · ⭐ Prompts
 </p>
 
 ---
@@ -24,9 +24,9 @@ Cada conteúdo é uma **fase**: tem texto, missões fáceis e um roadmap pra tu 
 
 ## 🎮 Joga no fliperama
 
-Tem uma versão jogável desse repositório! Tu abre as fases, completa missões, ganha XP, sobe de nível e desbloqueia conquistas. O progresso fica salvo **só no teu navegador**: nada é enviado pra lugar nenhum.
+Tem uma versão jogável desse repositório! Cada fase vira uma tela de jogo: tu lê, aperta **OK** pra avançar, marca as missões que fez na vida real, ganha XP, sobe de nível e desbloqueia conquistas. O progresso fica salvo **só no teu navegador**: nada é enviado pra lugar nenhum.
 
-👉 O link do fliperama fica no topo deste repositório, no campo **Website**.
+👉 **[Jogar agora](https://masbahguriatech.github.io/tudo-que-eu-queria-ter-sabido/)**
 
 Prefere ler direto aqui no GitHub? Tranquilo, é só seguir as fases abaixo.
 
@@ -40,7 +40,9 @@ Prefere ler direto aqui no GitHub? Tranquilo, é só seguir as fases abaixo.
 | 2 | [📣 LinkedIn: fazendo teu perfil ganhar XP](./conteudos/02-linkedin-conteudo.md) | Como transformar projeto e vivência em post, sem vergonha |
 | 3 | [💸 Meus pilas (versão gurias)](./conteudos/03-meus-pilas-gurias.md) · [💸 Meus pilas (versão guris)](./conteudos/03-meus-pilas-guris.md) | Como organizar teu dim dim de um jeito leve e por que guardar dinheiro é liberdade |
 | 4 | [🎓 Faculdade, who?](./conteudos/04-faculdade-who.md) | Áreas da tecnologia, cursos, testes vocacionais e como entrar na faculdade |
-| 5 | [🎮 Comunidades tech](./conteudos/05-comunidades-tech.md) | O que são, onde vivem, do que se alimentam, e como montar a tua party |
+| 5 | [🤖 IA, who?](./conteudos/05-ia-who.md) | O que é IA, como funciona, pra que serve cada ferramenta (ChatGPT, Gemini, Claude, Codex...) e como usar sem cair em cilada |
+| 6 | [🎮 Comunidades tech](./conteudos/06-comunidades-tech.md) | O que são, onde vivem, do que se alimentam, e como montar a tua party |
+| ⭐ | [Fase bônus: prompts](./conteudos/07-bonus-prompts.md) | Prompts prontos pra aprofundar cada fase com a ajuda de uma IA |
 
 > 💡 **Sobre a fase 3:** ela tem duas versões, uma com mais foco em liberdade financeira pras gurias e outra pros guris. Escolhe a que fizer mais sentido pra ti, ou lê as duas. Não precisa se encaixar em caixinha nenhuma pra aproveitar qualquer uma delas.
 
