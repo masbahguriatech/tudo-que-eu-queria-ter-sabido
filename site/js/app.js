@@ -99,18 +99,18 @@ function renderHud() {
   const xp = game.computeXP(state);
   const lv = game.levelFor(xp);
   const zeradas = game.FASES_PRINCIPAIS.filter((f) => game.isPhaseComplete(state, f)).length;
+  const missoesFeitas = [...CAT.ids].reduce((a, id) => a + game.missionsDone(state, id), 0);
+  const missoesTotal = [...CAT.missionCount.values()].reduce((a, b) => a + b, 0);
   const hash = location.hash || '#/';
   const ativo = (rota) => (hash === rota || (rota === '#/mapa' && hash.startsWith('#/fase/')) ? 'page' : null);
-  const dicaXp = lv.proximo
-    ? `faltam ${lv.proximo - xp} XP pro nível ${lv.nivel + 1}`
-    : 'nível máximo! 🏆';
+  const dicaXp = lv.proximo ? `faltam ${lv.proximo - xp} pro nível ${lv.nivel + 1}` : 'nível máximo! 🏆';
 
   const item = (rota, icone, texto, extra = '') => h('a', { href: rota, class: 'hud__link', 'aria-current': ativo(rota) },
     h('span', { class: 'hud__link-icone', 'aria-hidden': 'true' }, icone),
     h('span', {}, texto, extra ? h('span', { class: 'hud__link-extra' }, extra) : null));
 
-  const stat = (rotulo, valor, extra = null, cls = '') => h('div', { class: `stat ${cls}` },
-    h('dt', { class: 'stat__rotulo' }, rotulo),
+  const stat = (icone, rotulo, valor, extra = null, cls = '') => h('div', { class: `stat ${cls}` },
+    h('dt', { class: 'stat__rotulo' }, h('span', { 'aria-hidden': 'true' }, icone), ' ', rotulo),
     h('dd', { class: 'stat__valor' }, valor, extra));
 
   hud.replaceChildren(
@@ -119,21 +119,22 @@ function renderHud() {
         h('span', { class: 'hud__bah', 'aria-hidden': 'true' }, 'bah'),
         h('span', { class: 'hud__textos' },
           h('span', { class: 'hud__titulo' }, 'tudo que eu gostaria de ter ', h('em', {}, '"sabido"'), ' quando saí do ensino médio'),
-          h('span', { class: 'hud__subtitulo' }, 'dicas com a tia @masbahguriatech'))),
+          h('span', { class: 'hud__subtitulo' }, 'dicas com a tia @masbahguriatech')))),
+    h('div', { class: 'hud__painel' },
+      h('section', { class: 'hud__placar', 'aria-label': 'Teu progresso' },
+        h('dl', { class: 'hud__stats' },
+          stat('👾', 'Quem joga', h('span', { class: 'stat__nome' }, playerName()),
+            h('a', { href: '#/opcoes', class: 'stat__editar' }, 'trocar', h('span', { class: 'sr-only' }, ' apelido')), 'stat--jogador'),
+          stat('⚡', 'Nível', h('span', {}, `${lv.nivel} · ${lv.titulo}`),
+            h('span', { class: 'stat__xp' },
+              barra(lv.progress, lv.proximo ? `Progresso até o nível ${lv.nivel + 1}` : 'Nível máximo'),
+              h('span', { class: 'stat__dica' }, `${xp} XP · ${dicaXp}`)), 'stat--xp'),
+          stat('🏁', 'Fases zeradas', `${zeradas}/${game.FASES_PRINCIPAIS.length}`),
+          stat('🎯', 'Missões feitas', `${missoesFeitas}/${missoesTotal}`))),
       h('nav', { class: 'hud__nav', 'aria-label': 'Menu principal' },
         item('#/mapa', '🗺️', 'Mapa', ' das fases'),
         item('#/manual', '📖', 'Manual'),
         item('#/opcoes', '⚙️', 'Opções'))),
-    h('section', { class: 'hud__painel', 'aria-label': 'Teu progresso' },
-      h('dl', { class: 'hud__stats' },
-        stat('Quem joga', playerName(),
-          h('a', { href: '#/opcoes', class: 'stat__editar' }, 'trocar', h('span', { class: 'sr-only' }, ' apelido')), 'stat--jogador'),
-        stat('Nível', `${lv.nivel} · ${lv.titulo}`),
-        stat('Experiência', `${xp} XP`,
-          h('span', { class: 'stat__xp' },
-            barra(lv.progress, lv.proximo ? `Progresso até o nível ${lv.nivel + 1}` : 'Nível máximo'),
-            h('span', { class: 'stat__dica' }, dicaXp)), 'stat--xp'),
-        stat('Fases zeradas', `${zeradas} de ${game.FASES_PRINCIPAIS.length}`))),
   );
 }
 

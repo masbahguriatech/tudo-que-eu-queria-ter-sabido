@@ -222,17 +222,22 @@ img, svg { max-width: 100%; }
   border-radius: 50%;
 }
 
-/* Menu: botões grandes, com ícone e texto, e a página atual marcada */
-.hud__nav { display: flex; flex-wrap: wrap; gap: .5rem; }
+/* Menu: logo abaixo do placar, três botões do mesmo tamanho */
+.hud__nav {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .5rem;
+}
 .hud__link {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: .45rem;
   min-height: 44px;
-  padding: .45rem .9rem;
+  padding: .4rem .8rem;
   border: 2px solid var(--violeta);
   color: var(--nevoa);
-  font-size: .95rem;
+  font-size: .92rem;
   font-weight: 600;
   text-decoration: none;
 }
@@ -242,55 +247,64 @@ img, svg { max-width: 100%; }
   border-color: var(--lilas);
   color: var(--roxo-profundo);
   font-weight: 700;
+  box-shadow: 3px 3px 0 var(--magenta);
 }
-.hud__link-icone { font-size: 1.05rem; line-height: 1; }
+.hud__link-icone { font-size: 1rem; line-height: 1; }
 
-/* Painel de progresso: cada número com o nome dele em cima */
-.hud__painel { padding-block: 0 1rem; }
+/* Placar compacto: uma faixa só, dividida em quatro, e o menu embaixo */
+.hud__painel { display: grid; gap: .6rem; padding-block: 0 .9rem; }
+.hud__placar {
+  background: var(--roxo-profundo);
+  border: 2px solid var(--roxo-eletrico);
+  box-shadow: 4px 4px 0 #000;
+}
 .hud__stats {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, auto));
-  justify-content: start;
-  gap: .6rem;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr) minmax(0, .8fr) minmax(0, .8fr);
   margin: 0;
 }
 .stat {
   display: grid;
-  align-content: start;
-  gap: .2rem;
-  padding: .55rem .85rem;
-  background: var(--roxo-profundo);
-  border: 2px solid var(--grafite);
+  align-content: center;
+  gap: .15rem;
+  min-width: 0;
+  padding: .45rem .8rem;
 }
+.stat + .stat { border-left: 2px dashed var(--grafite); }
 .stat__rotulo {
-  font-size: .8rem;
-  font-weight: 600;
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
   color: var(--lilas);
+  white-space: nowrap;
 }
 .stat__valor {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: .2rem .6rem;
+  gap: .1rem .5rem;
   margin: 0;
   font-family: var(--f-arcade);
-  font-size: 1rem;
+  font-size: .95rem;
   font-weight: 800;
   color: var(--nevoa);
+  min-width: 0;
 }
+.stat__nome { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
 .stat--xp .stat__valor { color: var(--creme); }
-.stat__xp { display: grid; gap: .3rem; flex-basis: 100%; }
-.stat__dica { font-family: var(--f-texto); font-size: .82rem; font-weight: 500; color: var(--lilas); }
+.stat__xp { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: .5rem; flex-basis: 100%; }
+.stat__dica { font-family: var(--f-texto); font-size: .76rem; font-weight: 500; color: var(--lilas); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .stat__editar {
   font-family: var(--f-texto);
-  font-size: .82rem;
+  font-size: .76rem;
   font-weight: 600;
   color: var(--lilas);
   text-decoration: underline;
   text-underline-offset: 3px;
 }
 .stat__editar:hover { color: var(--nevoa); }
-.stat--xp .barra { width: 100%; min-width: 160px; }
+.stat--xp .barra { width: 110px; height: 12px; }
 
 /* Barra de progresso em blocos */
 .barra {
@@ -931,8 +945,11 @@ img, svg { max-width: 100%; }
    Responsivo, movimento reduzido e efeitos desligados
    ========================================================================== */
 
-@media (max-width: 760px) {
+@media (max-width: 860px) {
   .hud__stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stat + .stat { border-left: 0; }
+  .stat:nth-child(even) { border-left: 2px dashed var(--grafite); }
+  .stat:nth-child(n+3) { border-top: 2px dashed var(--grafite); }
 }
 
 @media (max-width: 640px) {
@@ -941,19 +958,20 @@ img, svg { max-width: 100%; }
   .hud__bah { width: 2.4rem; height: 2.4rem; font-size: .95rem; }
   .hud__titulo { font-size: .95rem; }
   .hud__subtitulo { font-size: .82rem; }
-  .hud__nav { width: 100%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .4rem; }
-  .hud__link { justify-content: center; padding: .35rem .4rem; font-size: .85rem; }
+  .hud__nav { gap: .4rem; }
+  .hud__link { padding: .35rem .3rem; font-size: .82rem; gap: .3rem; }
   .hud__link-extra { display: none; }
-  .hud__painel { padding-bottom: .75rem; }
-  .hud__stats { gap: .4rem; }
+  .hud__painel { padding-bottom: .7rem; gap: .5rem; }
   .stat--jogador { display: none; }
-  .stat { padding: .4rem .6rem; gap: .1rem; }
-  .stat__rotulo { font-size: .75rem; }
+  .stat { padding: .4rem .6rem; }
+  .stat__rotulo { font-size: .66rem; }
   .stat__valor { font-size: .85rem; }
-  .stat--xp { grid-column: 1 / -1; order: 3; }
-  .stat--xp .stat__valor { flex-wrap: nowrap; }
-  .stat__xp { flex: 1; flex-basis: auto; grid-template-columns: 1fr; }
-  .stat--xp .barra { min-width: 0; }
+  .stat--xp { grid-column: 1 / -1; }
+  .hud__stats .stat:nth-child(2) { border-left: 0; }
+  .hud__stats .stat:nth-child(3) { border-top: 2px dashed var(--grafite); border-left: 0; }
+  .hud__stats .stat:nth-child(4) { border-top: 2px dashed var(--grafite); border-left: 2px dashed var(--grafite); }
+  .stat__xp { grid-template-columns: 1fr; gap: .25rem; }
+  .stat--xp .barra { width: 100%; }
   .kicker, .ficha { letter-spacing: .15em; }
   .logo { line-height: 1.05; }
   .toasts { left: 1rem; align-items: stretch; }
