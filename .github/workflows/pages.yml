@@ -35,7 +35,7 @@ jobs:
             echo "Encontrei uma API perigosa no JavaScript. Usa as funções de dom.js." && exit 1
           fi
 
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: site
 
