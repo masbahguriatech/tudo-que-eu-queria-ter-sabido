@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="bah">
+  <rect width="64" height="64" rx="14" fill="#6D28D9"/>
+  <path d="M12 16h40a4 4 0 0 1 4 4v20a4 4 0 0 1-4 4H28l-10 8v-8h-6a4 4 0 0 1-4-4V20a4 4 0 0 1 4-4z" fill="#F7F4FB"/>
+  <text x="31" y="36" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-weight="700" font-size="17" fill="#2A1250">bah</text>
+  <circle cx="48" cy="22" r="4" fill="#FF4D8D"/>
+</svg>

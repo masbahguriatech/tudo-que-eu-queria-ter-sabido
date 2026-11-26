@@ -1,0 +1,53 @@
+name: Publicar fliperama
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Nada de permissão por padrão: cada etapa pede só o que precisa.
+permissions: {}
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Gerar conteúdo (falha se tiver link não permitido)
+        run: python3 scripts/build.py
+
+      - name: Conferir que não tem HTML perigoso no JavaScript
+        run: |
+          if grep -rnE "innerHTML|outerHTML|insertAdjacentHTML|document\.write|eval\(|new Function" site/js --include=*.js --exclude=content.js; then
+            echo "Encontrei uma API perigosa no JavaScript. Usa as funções de dom.js." && exit 1
+          fi
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
