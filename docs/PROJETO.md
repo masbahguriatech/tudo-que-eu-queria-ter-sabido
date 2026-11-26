@@ -112,6 +112,7 @@ A navegação usa o endereço depois do `#`, e só rotas conhecidas são aceitas
 | `#/fase/07` | Fase bônus |
 | `#/manual` | Este manual |
 | `#/opcoes` | Opções e save |
+| `#/trofeus` | Sala de troféus (conquistas) |
 | `#/fim` | Tela de jogo zerado |
 
 ---

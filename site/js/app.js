@@ -105,9 +105,13 @@ function renderHud() {
   const ativo = (rota) => (hash === rota || (rota === '#/mapa' && hash.startsWith('#/fase/')) ? 'page' : null);
   const dicaXp = lv.proximo ? `faltam ${lv.proximo - xp} pro nível ${lv.nivel + 1}` : 'nível máximo! 🏆';
 
-  const item = (rota, icone, texto, extra = '') => h('a', { href: rota, class: 'hud__link', 'aria-current': ativo(rota) },
+  const item = (rota, icone, texto, extra = '', antes = '') => h('a', { href: rota, class: 'hud__link', 'aria-current': ativo(rota) },
     h('span', { class: 'hud__link-icone', 'aria-hidden': 'true' }, icone),
-    h('span', {}, texto, extra ? h('span', { class: 'hud__link-extra' }, extra) : null));
+    antes
+      ? h('span', {},
+        h('span', { class: 'hud__link-extra' }, antes + texto.toLowerCase()),
+        h('span', { class: 'hud__link-curto' }, texto))
+      : h('span', {}, texto, extra ? h('span', { class: 'hud__link-extra' }, extra) : null));
 
   const stat = (icone, rotulo, valor, extra = null, cls = '') => h('div', { class: `stat ${cls}` },
     h('dt', { class: 'stat__rotulo' }, h('span', { 'aria-hidden': 'true' }, icone), ' ', rotulo),
@@ -134,7 +138,8 @@ function renderHud() {
       h('nav', { class: 'hud__nav', 'aria-label': 'Menu principal' },
         item('#/mapa', '🗺️', 'Mapa', ' das fases'),
         item('#/manual', '📖', 'Manual'),
-        item('#/opcoes', '⚙️', 'Opções'))),
+        item('#/opcoes', '⚙️', 'Opções'),
+        item('#/trofeus', '🏆', 'Troféus', '', 'Sala de '))),
   );
 }
 
@@ -216,14 +221,6 @@ function telaMapa() {
       corpo);
   });
 
-  const trofeus = game.ACHIEVEMENTS.map((a) => {
-    const ok = state.achievements.has(a.id);
-    return h('li', { class: `trofeu ${ok ? 'trofeu--ok' : ''}` },
-      h('span', { class: 'trofeu__icone', 'aria-hidden': 'true' }, ok ? a.icone : '?'),
-      h('span', { class: 'trofeu__nome' }, ok ? a.nome : '???'),
-      h('span', { class: 'trofeu__desc' }, ok ? a.desc : 'Conquista secreta'));
-  });
-
   return h('section', { class: 'tela-mapa' },
     titulo('MAPA DAS FASES', 'tela__titulo'),
     h('p', { class: 'tela__sub' },
@@ -234,9 +231,29 @@ function telaMapa() {
       ? h('a', { href: '#/fim', class: 'banner-fim' }, '🏆 Tu zerou o jogo! Ver a tela final ▶')
       : null,
     h('ol', { class: 'fases' }, cards),
-    h('section', { class: 'trofeus', 'aria-labelledby': 'trofeus-titulo' },
-      h('h2', { id: 'trofeus-titulo', class: 'tela__titulo tela__titulo--menor' }, 'SALA DE TROFÉUS'),
-      h('ul', { class: 'trofeus__lista' }, trofeus)),
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Sala de troféus
+// ---------------------------------------------------------------------------
+function telaTrofeus() {
+  const ganhas = game.ACHIEVEMENTS.filter((a) => state.achievements.has(a.id)).length;
+  const trofeus = game.ACHIEVEMENTS.map((a) => {
+    const ok = state.achievements.has(a.id);
+    return h('li', { class: `trofeu ${ok ? 'trofeu--ok' : ''}` },
+      h('span', { class: 'trofeu__icone', 'aria-hidden': 'true' }, ok ? a.icone : '?'),
+      h('span', { class: 'trofeu__nome' }, ok ? a.nome : '???'),
+      h('span', { class: 'trofeu__desc' }, ok ? a.desc : 'Conquista secreta'));
+  });
+
+  return h('section', { class: 'tela-mapa' },
+    titulo('SALA DE TROFÉUS', 'tela__titulo'),
+    h('p', { class: 'tela__sub' }, `${ganhas} de ${game.ACHIEVEMENTS.length} conquistas desbloqueadas`),
+    barra(ganhas / game.ACHIEVEMENTS.length, 'Conquistas desbloqueadas'),
+    h('p', { class: 'tela__dica' },
+      `Cada conquista vale +${game.XP.conquista} XP. As que estão com "?" ainda são segredo: vai jogando que elas aparecem.`),
+    h('ul', { class: 'trofeus__lista' }, trofeus),
   );
 }
 
@@ -584,6 +601,7 @@ function route() {
   else if (hash === '#/mapa') view = telaMapa();
   else if (hash === '#/manual') view = telaManual();
   else if (hash === '#/opcoes') view = telaOpcoes();
+  else if (hash === '#/trofeus') view = telaTrofeus();
   else if (hash === '#/fim') { view = telaFim(); comHud = false; }
   else {
     const m = /^#\/fase\/([0-9a-z-]{2,20})$/.exec(hash);

@@ -1,7 +1,7 @@
 // Service worker: guarda os arquivos do fliperama pra ele abrir mesmo offline.
 // VERSION e ASSETS são atualizados pelo scripts/build.py. Não edite à mão.
 
-const VERSION = '443d0013db4c';
+const VERSION = '4243f421885a';
 const ASSETS = ["./", "./index.html", "./favicon.svg", "./css/arcade.css", "./js/app.js", "./js/content.js", "./js/dom.js", "./js/game.js", "./js/render.js", "./js/save.js"];
 const CACHE = `modo-multiplayer-${VERSION}`;
 
